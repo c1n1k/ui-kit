@@ -1,0 +1,150 @@
+/* stylelint-disable  no-descending-specificity  */
+.Checkbox {
+  position: relative;
+  align-items: center;
+  display: inline-flex;
+  font-family: var(--font-sans);
+  cursor: pointer;
+
+  &-Input {
+    position: relative;
+    flex-shrink: 0;
+    width: var(--box-size);
+    height: var(--box-size);
+    margin: 0;
+    box-sizing: border-box;
+    border: var(--control-border-width) solid var(--color-control-bg-border-default);
+    border-radius: var(--control-radius);
+    background-color: transparent;
+    transition: border-color 0.15s, background-color 0.15s;
+    -webkit-appearance: none;
+    cursor: pointer;
+
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: 1;
+      width: calc(var(--box-size) * 0.6);
+      height: calc(var(--box-size) * 0.35);
+      box-sizing: border-box;
+      border-bottom: 2px solid var(--color-control-typo-primary);
+      border-left: 2px solid var(--color-control-typo-primary);
+      background-color: var(--color-control-bg-affect);
+      opacity: 0;
+      transform-origin: 0 0;
+      transform: rotate(-50deg) scale(0, 1);
+      transition: opacity 0.15s, transform 0.15s, background-color 0.08s;
+    }
+
+    &:focus,
+    &:focus:hover {
+      box-shadow: 0 0 0 2px var(--color-control-bg-focus);
+      animation: checkboxFocusAnimation 0.5s ease-in;
+      outline: none;
+    }
+
+    &:focus:active,
+    &:focus:active:hover {
+      animation-name: none !important;
+    }
+  }
+
+  &-Label {
+    margin-left: var(--offset);
+    color: var(--color-control-typo-default);
+    font-size: var(--checkbox-font-size);
+  }
+
+  &_size {
+    &_m {
+      --checkbox-font-size: var(--control-text-size-m);
+      --box-size: var(--control-box-size-m);
+      --offset: var(--space-xs);
+
+      .Checkbox-Input {
+        &::before {
+          top: 7px;
+          left: 2px;
+        }
+      }
+    }
+
+    &_l {
+      --checkbox-font-size: var(--control-text-size-l);
+      --box-size: var(--control-box-size-l);
+      --offset: var(--space-s);
+
+      .Checkbox-Input {
+        &::before {
+          top: 9px;
+          left: 2px;
+        }
+      }
+    }
+  }
+
+  &-Input:checked {
+    border-color: var(--color-control-bg-primary);
+    background-color: var(--color-control-bg-primary);
+
+    &::before {
+      opacity: 1;
+      transform: rotate(-50deg) scale(1, 1);
+    }
+  }
+
+  &:hover &-Input {
+    border-color: var(--color-control-bg-border-default-hover);
+
+    &:checked {
+      border-color: var(--color-control-bg-primary-hover);
+      background-color: var(--color-control-bg-primary-hover);
+    }
+  }
+
+  &_intermediate,
+  &_intermediate:hover {
+    .Checkbox-Input,
+    .Checkbox-Input:checked {
+      border-color: var(--color-control-bg-primary);
+      background-color: var(--color-control-bg-primary);
+
+      &::before {
+        background-color: var(--color-control-typo-primary);
+        transition: opacity 0.15s, transform 0.15s, background-color 0.08s 0.04s;
+        transform: rotate(0) scale(1, 0.35) translate(0, -50%);
+        opacity: 1;
+      }
+    }
+  }
+
+  &_disabled {
+    pointer-events: none;
+    .Checkbox-Input:disabled {
+      border-color: transparent;
+      background-color: var(--color-control-bg-disable);
+
+      &::before {
+        border-color: var(--color-control-typo-disable);
+      }
+    }
+
+    &.Checkbox_intermediate .Checkbox-Input:disabled {
+      &::before {
+        background-color: var(--color-control-typo-disable);
+      }
+    }
+    .Checkbox-Input:disabled ~ .Checkbox-Label {
+      color: var(--color-control-typo-disable);
+    }
+  }
+}
+
+@keyframes checkboxFocusAnimation {
+  from {
+    box-shadow: 0 0 0 0 var(--color-control-bg-focus), 0 0 0 0 var(--color-control-bg-active);
+  }
+  to {
+    box-shadow: 0 0 0 2px var(--color-control-bg-focus), 0 0 0 6px transparent;
+  }
+}

@@ -1,0 +1,24 @@
+.autoresize-input {
+  display: inline-block;
+
+  &__input {
+    box-sizing: content-box;
+    padding: 0;
+    border: 0;
+    background: 0 center;
+    font-size: inherit;
+    color: inherit;
+    outline: 0;
+    opacity: 1;
+  }
+
+  &__sizer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 0;
+    visibility: hidden;
+    white-space: pre;
+    overflow: scroll;
+  }
+}
