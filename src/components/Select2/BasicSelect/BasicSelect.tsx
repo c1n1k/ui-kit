@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import computeScrollIntoView from 'compute-scroll-into-view';
+
 import { useSelect } from '../hooks/use-select';
 import { cnSelect } from '../cnBlock';
 import { IconSelect } from '../../../icons/IconSelect/IconSelect';
@@ -28,6 +30,27 @@ type Props = {
   onFocus?: (event?: React.FocusEvent<HTMLElement>) => void;
 };
 
+/**
+ * Scroll node into view if necessary
+ * @param {HTMLElement} node the element that should scroll into view
+ * @param {HTMLElement} menuNode the menu element of the component
+ */
+function scrollIntoView(node, menuNode) {
+  if (!node) {
+    return;
+  }
+
+  const actions = computeScrollIntoView(node, {
+    boundary: menuNode,
+    block: 'nearest',
+    scrollMode: 'if-needed',
+  });
+  actions.forEach(({ el, top, left }) => {
+    el.scrollTop = top;
+    el.scrollLeft = left;
+  });
+}
+
 export const BasicSelect: React.FC<Props> = (props) => {
   // const itemToString = (item: SelectOption) => (item ? item.value : '');
   const {
@@ -41,8 +64,6 @@ export const BasicSelect: React.FC<Props> = (props) => {
     ...restProps
   } = props;
   const [isFocused, setIsFocused] = useState(false);
-
-  console.log(value);
 
   const shiftAmount = pageSize;
 
@@ -72,6 +93,19 @@ export const BasicSelect: React.FC<Props> = (props) => {
   };
 
   const optionsRef = useRef<HTMLDivElement | null>(null);
+  // const reactWindowInstanceRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToIndex = (index: number): void => {
+    if (!optionsRef.current) {
+      return;
+    }
+
+    console.log('scroll');
+
+    const elements = optionsRef.current.querySelectorAll('div[role=option]');
+
+    scrollIntoView(elements[index], optionsRef.current);
+  };
 
   // const handleClearValue = () => {
   //   onChange(null);
@@ -90,6 +124,7 @@ export const BasicSelect: React.FC<Props> = (props) => {
     onChange,
     optionsRef,
     shiftAmount,
+    scrollToIndex,
   });
 
   return (
@@ -110,14 +145,9 @@ export const BasicSelect: React.FC<Props> = (props) => {
           )}
         </button>
         <span className={cnSelect('Indicators')}>
-          <button
-            type="button"
-            onClick={handleToggleDropdown}
-            className={cnSelect('IndicatorsDropdown')}
-            tabIndex={-1}
-          >
+          <span className={cnSelect('IndicatorsDropdown')}>
             <IconSelect size="xs" className={cnSelect('IndicatorsIcon')} />
-          </button>
+          </span>
         </span>
       </div>
       {isOpen && (
@@ -145,6 +175,7 @@ export const BasicSelect: React.FC<Props> = (props) => {
               </div>
             ))}
           </div>
+          {/* <div tabIndex={0}></div> */}
         </Dropdown>
       )}
     </Container>

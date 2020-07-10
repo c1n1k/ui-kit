@@ -229,6 +229,19 @@ export function useSelect({
     }
   }, [multi, value, originalOptions]);
 
+  const getSelectedOptionIndex = () => {
+    if (selectedOption) {
+      const firstSelectedOption = Array.isArray(selectedOption)
+        ? selectedOption[0]
+        : selectedOption;
+      const selectedOptionIndex = originalOptions.indexOf(firstSelectedOption);
+
+      return selectedOptionIndex > 0 ? selectedOptionIndex : 0;
+    }
+
+    return 0;
+  };
+
   // If there is a search value, filter the options for that value
   // TODO: This is likely where we will perform async option fetching
   // in the future.
@@ -259,6 +272,11 @@ export function useSelect({
         }),
         actions.setOpen
       );
+
+      if (selectedOption && newIsOpen) {
+        const currentHighlightIndex = getSelectedOptionIndex();
+        scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
+      }
     },
     [setState]
   );
@@ -310,7 +328,7 @@ export function useSelect({
           onChangeRef.current(option);
         } else {
           if (duplicates || (value && Array.isArray(value) && !value.includes(option))) {
-            onChangeRef.current && onChangeRef.current([...value, option], option);
+            Array.isArray(value) && onChangeRef.current && onChangeRef.current([...value, option]);
           }
         }
       }
@@ -503,12 +521,14 @@ export function useSelect({
 
   // When searching, activate the first option
   React.useEffect(() => {
-    highlightIndex(0);
+    const currentHighlightIndex = getSelectedOptionIndex();
+    highlightIndex(currentHighlightIndex);
   }, [searchValue, highlightIndex]);
 
   // When we open and close the options, set the highlightedIndex to 0
   React.useEffect(() => {
-    highlightIndex(0);
+    const currentHighlightIndex = getSelectedOptionIndex();
+    highlightIndex(currentHighlightIndex);
 
     if (!isOpen && onBlurRef.current?.event) {
       onBlurRef.current.cb(onBlurRef.current.event);
@@ -529,6 +549,8 @@ export function useSelect({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);
+
+  console.log(highlightedIndex);
 
   return {
     // State
