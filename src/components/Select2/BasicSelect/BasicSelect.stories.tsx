@@ -66,6 +66,8 @@ const knobsContainer = () => ({
   placeholder: text('placeholder', 'Placeholder'),
 });
 
+// story
+
 storiesOf('Select/BasicSelect', module)
   .addDecorator(withKnobs)
   .add('BasicSelect', () => {
