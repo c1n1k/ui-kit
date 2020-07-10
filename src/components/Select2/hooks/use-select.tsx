@@ -550,8 +550,6 @@ export function useSelect({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);
 
-  console.log(highlightedIndex);
-
   return {
     // State
     searchValue,
