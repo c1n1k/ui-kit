@@ -100,8 +100,6 @@ export const BasicSelect: React.FC<Props> = (props) => {
       return;
     }
 
-    console.log('scroll');
-
     const elements = optionsRef.current.querySelectorAll('div[role=option]');
 
     scrollIntoView(elements[index], optionsRef.current);
