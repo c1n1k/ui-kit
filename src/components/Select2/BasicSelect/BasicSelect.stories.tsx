@@ -70,15 +70,19 @@ storiesOf('Select/BasicSelect', module)
   .addDecorator(withKnobs)
   .add('BasicSelect', () => {
     const [value, setValue] = useState<SelectOption | null>(null);
+    const getItemLabel = (option: SelectOption): string => option.label;
+    const getItemKey = (option: SelectOption): string => option.value;
 
     return (
       <>
-        <div>
-          <BasicSelect
+        <div style={{ width: '250px' }}>
+          <BasicSelect<SelectOption>
             {...knobsContainer()}
             options={items}
             onChange={setValue}
             value={value}
+            getItemLabel={getItemLabel}
+            getItemKey={getItemKey}
           ></BasicSelect>
         </div>
         {/* <div style={{ marginTop: '300px', width: '300px' }}>

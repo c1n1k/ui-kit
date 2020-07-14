@@ -9,12 +9,7 @@ import { Container } from '../components/Container';
 import { Dropdown } from '../components/Dropdown';
 import { PropForm, PropSize, PropWidth, PropView } from '../types';
 
-type SelectOption = {
-  value: string;
-  label: string;
-};
-
-type Props = {
+type Props<T> = {
   className?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -22,20 +17,17 @@ type Props = {
   size?: PropSize;
   width?: PropWidth;
   view?: PropView;
-  options: SelectOption[];
-  value: SelectOption | null;
+  options: T[];
+  value: T | null;
   pageSize: number;
-  onChange(value: SelectOption | SelectOption[] | null): void;
+  onChange(value: T | T[] | null): void;
   onBlur?: (event?: React.FocusEvent<HTMLElement>) => void;
   onFocus?: (event?: React.FocusEvent<HTMLElement>) => void;
+  getItemLabel(T): string;
+  getItemKey(T): string;
 };
 
-/**
- * Scroll node into view if necessary
- * @param {HTMLElement} node the element that should scroll into view
- * @param {HTMLElement} menuNode the menu element of the component
- */
-function scrollIntoView(node, menuNode) {
+function scrollIntoView(node: HTMLDivElement, menuNode: HTMLDivElement) {
   if (!node) {
     return;
   }
@@ -51,8 +43,7 @@ function scrollIntoView(node, menuNode) {
   });
 }
 
-export const BasicSelect: React.FC<Props> = (props) => {
-  // const itemToString = (item: SelectOption) => (item ? item.value : '');
+export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (props) => {
   const {
     placeholder,
     onBlur,
@@ -61,11 +52,27 @@ export const BasicSelect: React.FC<Props> = (props) => {
     onChange,
     value,
     pageSize = 10,
+    getItemLabel,
+    getItemKey,
     ...restProps
   } = props;
   const [isFocused, setIsFocused] = useState(false);
 
   const shiftAmount = pageSize;
+
+  const optionsRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToIndex = (index: number): void => {
+    if (!optionsRef.current) {
+      return;
+    }
+
+    const elements: NodeListOf<HTMLDivElement> = optionsRef.current.querySelectorAll(
+      'div[role=option]'
+    );
+
+    scrollIntoView(elements[index], optionsRef.current);
+  };
 
   const handleInputFocus = (e: React.FocusEvent<HTMLElement>) => {
     if (!restProps.disabled) {
@@ -92,33 +99,11 @@ export const BasicSelect: React.FC<Props> = (props) => {
     setIsFocused(!isFocused);
   };
 
-  const optionsRef = useRef<HTMLDivElement | null>(null);
-  // const reactWindowInstanceRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToIndex = (index: number): void => {
-    if (!optionsRef.current) {
-      return;
-    }
-
-    console.log('scroll');
-
-    const elements = optionsRef.current.querySelectorAll('div[role=option]');
-
-    scrollIntoView(elements[index], optionsRef.current);
-  };
-
   // const handleClearValue = () => {
   //   onChange(null);
   // };
 
-  const {
-    visibleOptions,
-    selectedOption,
-    highlightedIndex,
-    getToggleProps,
-    getOptionProps,
-    isOpen,
-  } = useSelect({
+  const { visibleOptions, highlightedIndex, getToggleProps, getOptionProps, isOpen } = useSelect({
     options,
     value,
     onChange,
@@ -129,25 +114,29 @@ export const BasicSelect: React.FC<Props> = (props) => {
 
   return (
     <Container focused={isFocused} {...restProps}>
-      <div className={cnSelect('Control')}>
-        <button
-          {...getToggleProps()}
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
-          className={cnSelect('ControlValueContainer')}
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-        >
-          {value ? (
-            <span className={cnSelect('ControlValue')}>{value.label}</span>
-          ) : (
-            <span className={cnSelect('ControlPlaceholder')}>{placeholder}</span>
-          )}
-        </button>
+      <div className={cnSelect('Control')} aria-expanded={isOpen} aria-haspopup="listbox">
+        <div className={cnSelect('ControlInner')}>
+          <button
+            {...getToggleProps()}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            className={cnSelect('ControlValueContainer')}
+          >
+            {value ? (
+              <span className={cnSelect('ControlValue')}>{getItemLabel(value)}</span>
+            ) : (
+              <span className={cnSelect('ControlPlaceholder')}>{placeholder}</span>
+            )}
+          </button>
+        </div>
         <span className={cnSelect('Indicators')}>
-          <span className={cnSelect('IndicatorsDropdown')}>
+          <button
+            className={cnSelect('IndicatorsDropdown')}
+            tabIndex={-1}
+            onClick={handleToggleDropdown}
+          >
             <IconSelect size="xs" className={cnSelect('IndicatorsIcon')} />
-          </span>
+          </button>
         </span>
       </div>
       {isOpen && (
@@ -157,25 +146,24 @@ export const BasicSelect: React.FC<Props> = (props) => {
             ref={optionsRef}
             aria-activedescendant={`sample-${highlightedIndex}`}
           >
-            {visibleOptions.map((option: SelectOption, index: number) => (
+            {visibleOptions.map((option, index: number) => (
               <div
-                aria-selected={option === selectedOption}
+                aria-selected={option === value}
                 role="option"
-                key={option.value}
+                key={getItemKey(option)}
                 id={`sample-${index}`}
                 {...getOptionProps({
                   index,
                   className: cnSelect('ListItem', {
-                    active: option === selectedOption,
+                    active: option === value,
                     hovered: index === highlightedIndex,
                   }),
                 })}
               >
-                {option.label}
+                {getItemLabel(option)}
               </div>
             ))}
           </div>
-          {/* <div tabIndex={0}></div> */}
         </Dropdown>
       )}
     </Container>

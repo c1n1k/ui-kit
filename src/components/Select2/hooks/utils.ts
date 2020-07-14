@@ -1,5 +1,14 @@
 import React from 'react';
 
+export type KeyHandler = (
+  defaultShift?: boolean,
+  defaultMeta?: boolean
+) => (prop: { shift: number; meta: any }, e: React.KeyboardEvent) => void;
+
+type UserKeysProps = {
+  // [key: string]: KeyHandler | void;
+};
+
 type KeyProps = {
   onKeyDown?(e: React.KeyboardEvent): void;
   onChange(e: React.SyntheticEvent<HTMLButtonElement>): void;
@@ -8,30 +17,30 @@ type KeyProps = {
   onBlur(e: React.FocusEvent<HTMLButtonElement>): void;
 };
 
-export function useDebounce(fn, time = 0) {
-  const ref = React.useRef<number | undefined | null>();
+export function useDebounce(time = 0, fn) {
+  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout> | null>();
   const fnRef = React.useRef();
 
   fnRef.current = fn;
 
   React.useEffect(() => {
     return () => {
-      clearTimeout(ref.current);
+      if (timeoutIDRef.current) {
+        clearTimeout(timeoutIDRef.current);
+      }
     };
   }, [time]);
 
   return React.useCallback(
     async (...args) => {
-      if (ref.current) {
-        clearTimeout(ref.current);
+      if (timeoutIDRef.current) {
+        clearTimeout(timeoutIDRef.current);
       }
-      return new Promise((resolve, reject) => {
-        ref.current = setTimeout(() => {
-          ref.current = null;
-          try {
+      return new Promise((resolve) => {
+        timeoutIDRef.current = setTimeout(() => {
+          if (timeoutIDRef.current) {
+            timeoutIDRef.current = null;
             resolve(fnRef.current(...args));
-          } catch (err) {
-            reject(err);
           }
         }, time);
       });
@@ -66,9 +75,9 @@ export const useKeys = (userKeys) => {
   };
 };
 
-export function useClickOutsideRef(enable, fn, userRef) {
+export function useClickOutsideRef(enable, fn: (e: React.SyntheticEvent) => void, userRef) {
   const localRef = React.useRef();
-  const fnRef = React.useRef();
+  const fnRef = React.useRef<(e: React.SyntheticEvent) => void>();
 
   fnRef.current = fn;
   const elRef = userRef || localRef;
@@ -80,7 +89,7 @@ export function useClickOutsideRef(enable, fn, userRef) {
         return;
       }
       const el = elRef.current;
-      if (el && !el.contains(e.target)) fnRef.current(e);
+      if (el && !el.contains(e.target) && fnRef.current) fnRef.current(e);
     },
     [elRef]
   );

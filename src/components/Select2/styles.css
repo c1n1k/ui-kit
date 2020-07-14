@@ -11,28 +11,6 @@
     background-color: var(--color-control-bg-border-default);
   }
 
-  &-Control {
-    width: 100%;
-    height: var(--input-height);
-    box-sizing: border-box;
-    display: inline-flex;
-    font-weight: normal;
-    font-size: var(--input-font-size);
-    font-family: var(--font-primary);
-    line-height: calc(var(--input-height) - var(--control-border-width));
-    padding: 0;
-    border: none;
-    outline: none;
-    color: currentColor;
-    background: transparent;
-    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
-    cursor: pointer;
-
-    &:focus {
-      outline: none;
-    }
-  }
-
   &_size {
     &_xs {
       --input-height: var(--control-height-xs);
@@ -56,6 +34,27 @@
       --input-height: var(--control-height-l);
       --input-font-size: var(--control-text-size-l);
       --input-space: calc(var(--control-space-l) * 0.5);
+    }
+  }
+
+  &-Control {
+    width: 100%;
+    height: var(--input-height);
+    box-sizing: border-box;
+    display: inline-flex;
+    font-weight: normal;
+    font-family: var(--font-primary);
+    line-height: calc(var(--input-height) - var(--control-border-width));
+    padding: 0;
+    border: none;
+    outline: none;
+    color: currentColor;
+    background: transparent;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
     }
   }
 
@@ -195,6 +194,7 @@
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
+    font-size: var(--input-font-size);
     text-overflow: ellipsis;
     text-align: left;
     color: var(--color-control-typo-placeholder);
@@ -203,16 +203,21 @@
   &-Indicators {
     height: 100%;
     display: flex;
-    padding-left: var(--input-space);
   }
 
   &-IndicatorsDropdown {
-    padding: 0;
     margin: 0;
+    padding: 0;
+    display: block;
     width: var(--input-height);
+    text-align: center;
     color: var(--color-control-typo-disable);
     border: none;
     background-color: transparent;
+
+    &:focus {
+      outline: none;
+    }
   }
 
   &_form_round &-IndicatorsDropdown {
@@ -221,9 +226,22 @@
     /* padding-left: calc(var(--input-space) * 1.6); */
   }
 
+  &-ControlInner {
+    position: relative;
+    width: 100%;
+  }
+
   &-ControlValueContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
+    font-size: var(--input-font-size);
+    line-height: var(--input-height);
+    text-align: left;
     background-color: transparent;
     border: none;
 
@@ -242,7 +260,6 @@
 
   &-ControlValue {
     display: block;
-    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

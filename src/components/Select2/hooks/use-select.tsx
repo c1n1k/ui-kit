@@ -1,6 +1,5 @@
 import React, { SyntheticEvent, FocusEvent, CSSProperties } from 'react';
-import { Option } from '../../Select/Option';
-import { useDebounce, useKeys, useClickOutsideRef } from './utils';
+import { useKeys, useClickOutsideRef, KeyHandler } from './utils';
 
 type Option = {
   value: string;
@@ -26,9 +25,9 @@ type Reducer = (state: State, newState: State, action: Action) => State;
 type Updater = (state: State) => State;
 
 type CreateLabelFunctionType = (d: string) => string;
-type FilterFunctionType = (options: Option[], searchValue: string) => Option[];
+// type FilterFunctionType = (options: Option[], searchValue: string) => Option[];
 type ScrollToIndexFunctionType = (optionIndex: number) => void;
-type OnChangeFunctionType = (value: Option | Option[] | null) => void;
+type OnChangeFunctionType<T> = (value: T | null) => void;
 
 interface IEventHandler<E extends SyntheticEvent> {
   (event: E): void;
@@ -39,24 +38,21 @@ type FocusEventHandler = {
   cb: IEventHandler<FocusEvent>;
 };
 
-type SetHandlerArg = boolean | number | Option;
+type SetHandlerArg<T> = boolean | number | T;
 
-type SetHandler = (arg: SetHandlerArg) => void;
+type SetHandler<T> = (arg: SetHandlerArg<T>) => void;
 
-type SelectProps = {
-  options: Option[];
-  value: Option | Option[] | null;
-  onChange: OnChangeFunctionType;
+type SelectProps<T> = {
+  options: T[];
+  value: T | null;
+  onChange: OnChangeFunctionType<T>;
   optionsRef: React.MutableRefObject<HTMLDivElement | null>;
-  multi?: boolean;
-  create?: boolean;
-  getCreateLabel?: CreateLabelFunctionType;
   stateReducer?: Reducer;
   duplicates?: boolean;
   scrollToIndex?: ScrollToIndexFunctionType;
   shiftAmount: number;
-  filterFn?: FilterFunctionType;
-  getDebounce?(options: Option[]): number;
+  // filterFn?: FilterFunctionType;
+  getTimeDebounce?: number;
 };
 
 interface IOptionProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -81,19 +77,18 @@ interface IToggleProps extends NativeButtonProps {
 
 type GetTogglePropsResult = any;
 
-type UseSelectResult = {
-  searchValue: string;
+type UseSelectResult<T> = {
+  searchValue?: string;
   isOpen: boolean;
   highlightedIndex: number;
-  selectedOption: Option | Option[] | undefined;
-  visibleOptions: Option[];
-  value: Option | Option[] | null;
+  visibleOptions: T[];
+  value: T | null;
   // Actions
-  selectIndex: SetHandler;
-  removeValue: SetHandler;
+  selectIndex: SetHandler<T>;
+  removeValue?: SetHandler<T>;
   setOpen(isOpen: boolean): void;
-  setSearch(value: string): void;
-  highlightIndex: SetHandler;
+  setSearch?(value: string): void;
+  highlightIndex: SetHandler<T>;
   // Prop Getters
   getToggleProps(props?: IToggleProps): GetTogglePropsResult;
   getOptionProps(props: IOptionProps): GetOptionPropsResult;
@@ -103,14 +98,6 @@ const actions = {
   setOpen: 'setOpen',
   setSearch: 'setSearch',
   highlightIndex: 'highlightIndex',
-};
-
-export const defaultFilterFn: FilterFunctionType = (options, searchValue) => {
-  return options
-    .filter((option) => option.value.toLowerCase().includes(searchValue.toLowerCase()))
-    .sort((a) => {
-      return a.value.toLowerCase().indexOf(searchValue.toLowerCase());
-    });
 };
 
 const initialState = {
@@ -139,16 +126,7 @@ function useHoistedState(
   return [state, setState];
 }
 
-// const isValueSingleOption = (arg: Option | Option[] | null): boolean => {
-//   if (!arg || Array.isArray(arg)) return false;
-
-//   return true;
-// };
-
-export function useSelect({
-  multi,
-  create,
-  getCreateLabel = (d) => `Use "${d}"`,
+export function useSelect<T>({
   stateReducer = (old, newState, action) => newState,
   duplicates,
   options,
@@ -157,42 +135,38 @@ export function useSelect({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   scrollToIndex = () => {},
   shiftAmount,
-  filterFn = defaultFilterFn,
   optionsRef,
-  getDebounce = (options) => (options.length > 10000 ? 1000 : options.length > 1000 ? 200 : 0),
-}: SelectProps): UseSelectResult {
-  const [
-    { searchValue, resolvedSearchValue, isOpen, highlightedIndex },
-    setState,
-  ] = useHoistedState(initialState, stateReducer);
+}: SelectProps<T>): UseSelectResult<T> {
+  const [{ searchValue, isOpen, highlightedIndex }, setState] = useHoistedState(
+    initialState,
+    stateReducer
+  );
 
   // Refs
 
   const inputRef = React.useRef<HTMLElement>();
   const onBlurRef = React.useRef<{
     cb(e: React.FocusEvent): void;
-    event: React.FocusEvent<HTMLButtonElement> | null;
+    event: React.FocusEvent | null;
   }>();
-  const onChangeRef = React.useRef<OnChangeFunctionType>();
-  const filterFnRef = React.useRef<FilterFunctionType>();
-  const getCreateLabelRef = React.useRef<CreateLabelFunctionType>();
+  const onChangeRef = React.useRef<OnChangeFunctionType<T>>();
+  // const filterFnRef = React.useRef<FilterFunctionType>();
   const scrollToIndexRef = React.useRef<ScrollToIndexFunctionType>();
 
-  filterFnRef.current = filterFn;
+  // filterFnRef.current = filterFn;
   scrollToIndexRef.current = scrollToIndex;
-  getCreateLabelRef.current = getCreateLabel;
 
   onChangeRef.current = onChange;
 
   // We need to memoize these default values to keep things
   // from rendereing without cause
-  const defaultMultiValue = React.useMemo(() => [], []);
+  // const defaultMultiValue = React.useMemo(() => [], []);
   const defaultOptions = React.useMemo(() => [], []);
 
   // Multi should always at least have an empty array as the value
-  if (multi && typeof value === 'undefined') {
-    value = defaultMultiValue;
-  }
+  // if (multi && typeof value === 'undefined') {
+  //   value = defaultMultiValue;
+  // }
 
   // If no options are provided, then use an empty array
   if (!options) {
@@ -201,65 +175,15 @@ export function useSelect({
 
   const originalOptions = options;
 
-  // If multi and duplicates aren't allowed, filter out the
-  // selected options from the options list
-  options = React.useMemo(() => {
-    if (multi && !duplicates) {
-      return options.filter(
-        (option) => value && !Array.isArray(value) && !value.value.includes(option.value)
-      );
-    }
-    return options;
-  }, [options, value, duplicates, multi]);
-
-  // Compute the currently selected option(s)
-  const selectedOption = React.useMemo(() => {
-    if (Array.isArray(value)) {
-      return value.map(
-        (val) =>
-          originalOptions.find((d) => d.value === val.value) || {
-            label: val.label,
-            value: val.value,
-          }
-      );
-    }
-
-    if (value && !Array.isArray(value)) {
-      return originalOptions.find((option) => option === value);
-    }
-  }, [multi, value, originalOptions]);
-
   const getSelectedOptionIndex = () => {
-    if (selectedOption) {
-      const firstSelectedOption = Array.isArray(selectedOption)
-        ? selectedOption[0]
-        : selectedOption;
-      const selectedOptionIndex = originalOptions.indexOf(firstSelectedOption);
+    if (value) {
+      const selectedOptionIndex = originalOptions.indexOf(value);
 
       return selectedOptionIndex > 0 ? selectedOptionIndex : 0;
     }
 
     return 0;
   };
-
-  // If there is a search value, filter the options for that value
-  // TODO: This is likely where we will perform async option fetching
-  // in the future.
-  options = React.useMemo(() => {
-    if (resolvedSearchValue && filterFnRef.current) {
-      return filterFnRef.current(options, resolvedSearchValue);
-    }
-    return options;
-  }, [options, resolvedSearchValue]);
-
-  // If in create mode and we have a search value, fabricate
-  // an option for that searchValue and prepend it to options
-  options = React.useMemo(() => {
-    if (create && searchValue && getCreateLabelRef.current) {
-      return [{ label: getCreateLabelRef.current(searchValue), value: searchValue }, ...options];
-    }
-    return options;
-  }, [create, searchValue, options]);
 
   // Actions
 
@@ -273,36 +197,12 @@ export function useSelect({
         actions.setOpen
       );
 
-      if (selectedOption && newIsOpen) {
+      if (value && newIsOpen) {
         const currentHighlightIndex = getSelectedOptionIndex();
         scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
       }
     },
     [setState]
-  );
-
-  const setResolvedSearch = useDebounce((value: string) => {
-    setState(
-      (old) => ({
-        ...old,
-        resolvedSearchValue: value,
-      }),
-      actions.setSearch
-    );
-  }, getDebounce(options));
-
-  const setSearch = React.useCallback(
-    (value: string) => {
-      setState(
-        (old) => ({
-          ...old,
-          searchValue: value,
-        }),
-        actions.setSearch
-      );
-      setResolvedSearch(value);
-    },
-    [setState, setResolvedSearch]
   );
 
   const highlightIndex = React.useCallback(
@@ -323,58 +223,28 @@ export function useSelect({
   const selectIndex = React.useCallback(
     (index) => {
       const option = options[index];
-      if (option) {
-        if (!multi && onChangeRef.current) {
-          onChangeRef.current(option);
-        } else {
-          if (duplicates || (value && Array.isArray(value) && !value.includes(option))) {
-            Array.isArray(value) && onChangeRef.current && onChangeRef.current([...value, option]);
-          }
-        }
+      if (option && onChangeRef.current) {
+        onChangeRef.current(option);
       }
 
-      if (!multi) {
-        setOpen(false);
-      } else {
-        setSearch('');
-      }
+      setOpen(false);
     },
-    [multi, options, duplicates, value, setOpen, setSearch]
-  );
-
-  const removeValue = React.useCallback(
-    (index) => {
-      if (Array.isArray(value)) {
-        onChangeRef.current && onChangeRef.current(value.filter((d, i) => i !== index));
-      }
-    },
-    [value]
+    [options, duplicates, value, setOpen]
   );
 
   // Handlers
 
-  const handleSearchValueChange = (e) => {
-    if (e.target) {
-      setSearch(e.target.value);
-    }
+  const handleSearchValueChange = () => {
     setOpen(true);
   };
 
   const handleSearchClick = () => {
-    if (!create || multi) {
-      setSearch('');
-    }
     setOpen(true);
   };
 
   const handleSearchFocus = () => handleSearchClick();
 
   // Prop Getters
-
-  type KeyHandler = (
-    defaultShift?: boolean,
-    defaultMeta?: boolean
-  ) => (prop: { shift: number; meta: any }, e: React.KeyboardEvent) => void;
 
   const ArrowUp: KeyHandler = (defaultShift, defaultMeta) => (
     { shift, meta },
@@ -418,10 +288,10 @@ export function useSelect({
   };
 
   const Backspace = () => {
-    if (!multi || searchValue) {
-      return;
-    }
-    Array.isArray(value) && removeValue(value.length - 1);
+    // if (!multi || searchValue) {
+    //   return;
+    // }
+    // Array.isArray(value) && removeValue(value.length - 1);
   };
 
   const getKeyProps = useKeys({
@@ -453,9 +323,8 @@ export function useSelect({
           ref.current = el;
         }
       },
-      // value: (isOpen ? searchValue : selectedOption ? selectedOption.label : '') || '',
       onChange: (e) => {
-        handleSearchValueChange(e);
+        handleSearchValueChange();
         if (onChange) {
           onChange(e);
         }
@@ -530,7 +399,7 @@ export function useSelect({
     const currentHighlightIndex = getSelectedOptionIndex();
     highlightIndex(currentHighlightIndex);
 
-    if (!isOpen && onBlurRef.current?.event) {
+    if (!isOpen && onBlurRef.current && onBlurRef.current.event) {
       onBlurRef.current.cb(onBlurRef.current.event);
       onBlurRef.current.event = null;
     }
@@ -545,26 +414,26 @@ export function useSelect({
     if (isOpen && inputRef.current) {
       setTimeout(() => {
         inputRef.current && inputRef.current.focus();
+        const currentHighlightIndex = getSelectedOptionIndex();
+        scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);
 
-  console.log(highlightedIndex);
-
   return {
     // State
-    searchValue,
+    // searchValue,
     isOpen,
     highlightedIndex,
-    selectedOption,
+    // selectedOption,
     visibleOptions: options,
     value,
     // Actions
     selectIndex,
-    removeValue,
+    // removeValue,
     setOpen,
-    setSearch,
+    // setSearch,
     highlightIndex,
     // Prop Getters
     getToggleProps,

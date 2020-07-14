@@ -5,6 +5,7 @@ import { cnSelect } from '../../cnBlock';
 
 type Props = {
   className?: string;
+  role?: string;
   children: React.ReactNode;
 };
 
