@@ -1,11 +1,6 @@
 import React, { SyntheticEvent, FocusEvent, CSSProperties } from 'react';
 import { useKeys, useClickOutsideRef, KeyHandler } from './utils';
 
-type Option = {
-  value: string;
-  label: string;
-};
-
 type State = {
   searchValue: string;
   resolvedSearchValue: string;
@@ -39,7 +34,6 @@ type FocusEventHandler = {
 };
 
 type SetHandlerArg<T> = boolean | number | T;
-
 type SetHandler<T> = (arg: SetHandlerArg<T>) => void;
 
 type SelectProps<T> = {
@@ -75,7 +69,7 @@ interface IToggleProps extends NativeButtonProps {
   ref?: React.MutableRefObject<HTMLButtonElement | null>;
 }
 
-type GetTogglePropsResult = any;
+// type GetTogglePropsResult = ReturnType<typeof getKeyProps>;
 
 type UseSelectResult<T> = {
   searchValue?: string;
@@ -159,7 +153,7 @@ export function useSelect<T>({
   onChangeRef.current = onChange;
 
   // We need to memoize these default values to keep things
-  // from rendereing without cause
+  // from rendering without cause
   // const defaultMultiValue = React.useMemo(() => [], []);
   const defaultOptions = React.useMemo(() => [], []);
 
@@ -287,13 +281,6 @@ export function useSelect<T>({
     setOpen(false);
   };
 
-  const Backspace = () => {
-    // if (!multi || searchValue) {
-    //   return;
-    // }
-    // Array.isArray(value) && removeValue(value.length - 1);
-  };
-
   const getKeyProps = useKeys({
     ArrowUp: ArrowUp(),
     ArrowDown: ArrowDown(),
@@ -304,7 +291,6 @@ export function useSelect<T>({
     Enter,
     Escape,
     Tab,
-    Backspace,
   });
 
   const getToggleProps = ({
@@ -315,7 +301,7 @@ export function useSelect<T>({
     onClick,
     onBlur,
     ...rest
-  }: IToggleProps = {}): GetTogglePropsResult => {
+  }: IToggleProps = {}): ReturnType<typeof getKeyProps> => {
     return getKeyProps({
       [refKey]: (el: HTMLButtonElement) => {
         inputRef.current = el;
@@ -423,17 +409,13 @@ export function useSelect<T>({
 
   return {
     // State
-    // searchValue,
     isOpen,
     highlightedIndex,
-    // selectedOption,
     visibleOptions: options,
     value,
     // Actions
     selectIndex,
-    // removeValue,
     setOpen,
-    // setSearch,
     highlightIndex,
     // Prop Getters
     getToggleProps,

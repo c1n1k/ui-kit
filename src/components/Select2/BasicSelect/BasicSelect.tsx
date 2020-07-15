@@ -99,10 +99,6 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
     setIsFocused(!isFocused);
   };
 
-  // const handleClearValue = () => {
-  //   onChange(null);
-  // };
-
   const { visibleOptions, highlightedIndex, getToggleProps, getOptionProps, isOpen } = useSelect({
     options,
     value,

@@ -3,13 +3,9 @@ import React from 'react';
 export type KeyHandler = (
   defaultShift?: boolean,
   defaultMeta?: boolean
-) => (prop: { shift: number; meta: any }, e: React.KeyboardEvent) => void;
+) => (prop: { shift: boolean; meta: boolean }, e: React.KeyboardEvent) => void;
 
-type UserKeysProps = {
-  // [key: string]: KeyHandler | void;
-};
-
-type KeyProps = {
+export type KeyProps = {
   onKeyDown?(e: React.KeyboardEvent): void;
   onChange(e: React.SyntheticEvent<HTMLButtonElement>): void;
   onFocus(e: React.FocusEvent<HTMLButtonElement>): void;
@@ -17,9 +13,16 @@ type KeyProps = {
   onBlur(e: React.FocusEvent<HTMLButtonElement>): void;
 };
 
-export function useDebounce(time = 0, fn) {
+export type UserKeysProps = {
+  [key: string]: (
+    prop: { keyCode: number; key: string; shift: boolean; meta: boolean },
+    e: React.KeyboardEvent<Element>
+  ) => void;
+};
+
+export function useDebounce(time = 0, fn: Function) {
   const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout> | null>();
-  const fnRef = React.useRef();
+  const fnRef = React.useRef<Function>();
 
   fnRef.current = fn;
 
@@ -38,7 +41,7 @@ export function useDebounce(time = 0, fn) {
       }
       return new Promise((resolve) => {
         timeoutIDRef.current = setTimeout(() => {
-          if (timeoutIDRef.current) {
+          if (timeoutIDRef.current && fnRef.current) {
             timeoutIDRef.current = null;
             resolve(fnRef.current(...args));
           }
@@ -49,11 +52,11 @@ export function useDebounce(time = 0, fn) {
   );
 }
 
-export const useKeys = (userKeys) => {
+export const useKeys = (userKeys: UserKeysProps) => {
   return ({ onKeyDown, ...rest }: KeyProps) => {
     return {
       ...rest,
-      onKeyDown: (e) => {
+      onKeyDown: (e: React.KeyboardEvent) => {
         const { keyCode, key, shiftKey: shift, metaKey: meta } = e;
         const handler = userKeys[key] || userKeys[keyCode];
         if (handler) {
