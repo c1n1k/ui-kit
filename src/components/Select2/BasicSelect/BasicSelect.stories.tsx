@@ -72,6 +72,8 @@ storiesOf('Select/BasicSelect', module)
     const [value, setValue] = useState<SelectOption | null>(null);
     const getItemLabel = (option: SelectOption): string => option.label;
     const getItemKey = (option: SelectOption): string => option.value;
+    const getItemValue = (option: SelectOption): string => option.value;
+    const handlerChangeValue = (val: SelectOption) => setValue(val);
 
     return (
       <>
@@ -79,15 +81,13 @@ storiesOf('Select/BasicSelect', module)
           <BasicSelect<SelectOption>
             {...knobsContainer()}
             options={items}
-            onChange={setValue}
+            onChange={handlerChangeValue}
             value={value}
             getItemLabel={getItemLabel}
             getItemKey={getItemKey}
+            getOptionValue={getItemValue}
           ></BasicSelect>
         </div>
-        {/* <div style={{ marginTop: '300px', width: '300px' }}>
-          <BasicSelect {...knobsContainer()} options={items}></BasicSelect>
-        </div> */}
       </>
     );
   });
