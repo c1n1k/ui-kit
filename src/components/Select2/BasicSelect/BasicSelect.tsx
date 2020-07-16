@@ -19,12 +19,13 @@ type Props<T> = {
   view?: PropView;
   options: T[];
   value: T | null;
-  pageSize: number;
-  onChange(value: T | T[] | null): void;
+  pageSize?: number;
+  onChange: (value: T | T[] | null) => void;
   onBlur?: (event?: React.FocusEvent<HTMLElement>) => void;
   onFocus?: (event?: React.FocusEvent<HTMLElement>) => void;
-  getItemLabel(T): string;
-  getItemKey(T): string;
+  getItemLabel(arg: T): string;
+  getItemKey(arg: T): string;
+  getOptionValue(arg: T): string | string[];
 };
 
 export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (props) => {

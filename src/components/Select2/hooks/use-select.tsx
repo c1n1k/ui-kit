@@ -22,7 +22,7 @@ type Updater = (state: State) => State;
 type CreateLabelFunctionType = (d: string) => string;
 // type FilterFunctionType = (options: Option[], searchValue: string) => Option[];
 type ScrollToIndexFunctionType = (optionIndex: number) => void;
-type OnChangeFunctionType<T> = (value: T | T[] | null) => void;
+type OnChangeFunctionType = Function;
 
 interface IEventHandler<E extends SyntheticEvent> {
   (event: E): void;
@@ -39,7 +39,7 @@ type SetHandler<T> = (arg: SetHandlerArg<T>) => void;
 type SelectProps<T> = {
   options: T[];
   value: T[] | null;
-  onChange: OnChangeFunctionType<T>;
+  onChange: OnChangeFunctionType;
   optionsRef: React.MutableRefObject<HTMLDivElement | null>;
   duplicates?: boolean;
   multi?: boolean;
@@ -139,7 +139,7 @@ export function useSelect<T>({
     cb(e: React.FocusEvent): void;
     event: React.FocusEvent | null;
   }>();
-  const onChangeRef = React.useRef<OnChangeFunctionType<T>>();
+  const onChangeRef = React.useRef<OnChangeFunctionType>();
   // const filterFnRef = React.useRef<FilterFunctionType>();
   const scrollToIndexRef = React.useRef<ScrollToIndexFunctionType>();
 
@@ -406,8 +406,6 @@ export function useSelect<T>({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);
-
-  console.log(value);
 
   return {
     // State
