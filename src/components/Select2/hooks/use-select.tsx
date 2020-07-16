@@ -22,7 +22,7 @@ type Updater = (state: State) => State;
 type CreateLabelFunctionType = (d: string) => string;
 // type FilterFunctionType = (options: Option[], searchValue: string) => Option[];
 type ScrollToIndexFunctionType = (optionIndex: number) => void;
-type OnChangeFunctionType<T> = (value: T | null) => void;
+type OnChangeFunctionType<T> = (value: T | T[] | null) => void;
 
 interface IEventHandler<E extends SyntheticEvent> {
   (event: E): void;
@@ -38,11 +38,11 @@ type SetHandler<T> = (arg: SetHandlerArg<T>) => void;
 
 type SelectProps<T> = {
   options: T[];
-  value: T | null;
+  value: T[] | null;
   onChange: OnChangeFunctionType<T>;
   optionsRef: React.MutableRefObject<HTMLDivElement | null>;
-  stateReducer?: Reducer;
   duplicates?: boolean;
+  multi?: boolean;
   scrollToIndex?: ScrollToIndexFunctionType;
   shiftAmount: number;
   // filterFn?: FilterFunctionType;
@@ -69,14 +69,16 @@ interface IToggleProps extends NativeButtonProps {
   ref?: React.MutableRefObject<HTMLButtonElement | null>;
 }
 
-// type GetTogglePropsResult = ReturnType<typeof getKeyProps>;
+interface IGetTogglePropsResult extends React.HTMLProps<HTMLButtonElement> {
+  disabled?: boolean;
+}
 
 type UseSelectResult<T> = {
   searchValue?: string;
   isOpen: boolean;
   highlightedIndex: number;
   visibleOptions: T[];
-  value: T | null;
+  value: T[] | null;
   // Actions
   selectIndex: SetHandler<T>;
   removeValue?: SetHandler<T>;
@@ -84,7 +86,7 @@ type UseSelectResult<T> = {
   setSearch?(value: string): void;
   highlightIndex: SetHandler<T>;
   // Prop Getters
-  getToggleProps(props?: IToggleProps): GetTogglePropsResult;
+  getToggleProps(props?: IToggleProps): IGetTogglePropsResult;
   getOptionProps(props: IOptionProps): GetOptionPropsResult;
 };
 
@@ -101,12 +103,9 @@ const initialState = {
   highlightedIndex: 0,
 };
 
-function useHoistedState(
-  initialState: State,
-  reducer: Reducer
-): [State, (updater: Updater, action: Action) => void] {
-  const reducerRef = React.useRef<Reducer>();
-  reducerRef.current = reducer;
+function useHoistedState(initialState: State): [State, (updater: Updater, action: Action) => void] {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const reducerRef = React.useRef<Reducer>((old, newState, action) => newState);
   const [state, _setState] = React.useState<State>(initialState);
   const setState = React.useCallback(
     (updater: Updater, action: Action) => {
@@ -121,20 +120,17 @@ function useHoistedState(
 }
 
 export function useSelect<T>({
-  stateReducer = (old, newState, action) => newState,
   duplicates,
   options,
-  value,
+  value = [],
   onChange,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   scrollToIndex = () => {},
   shiftAmount,
   optionsRef,
+  multi = false,
 }: SelectProps<T>): UseSelectResult<T> {
-  const [{ searchValue, isOpen, highlightedIndex }, setState] = useHoistedState(
-    initialState,
-    stateReducer
-  );
+  const [{ searchValue, isOpen, highlightedIndex }, setState] = useHoistedState(initialState);
 
   // Refs
 
@@ -154,13 +150,13 @@ export function useSelect<T>({
 
   // We need to memoize these default values to keep things
   // from rendering without cause
-  // const defaultMultiValue = React.useMemo(() => [], []);
+  const defaultMultiValue = React.useMemo(() => [], []);
   const defaultOptions = React.useMemo(() => [], []);
 
   // Multi should always at least have an empty array as the value
-  // if (multi && typeof value === 'undefined') {
-  //   value = defaultMultiValue;
-  // }
+  if (multi && !value) {
+    value = defaultMultiValue;
+  }
 
   // If no options are provided, then use an empty array
   if (!options) {
@@ -171,7 +167,7 @@ export function useSelect<T>({
 
   const getSelectedOptionIndex = () => {
     if (value) {
-      const selectedOptionIndex = originalOptions.indexOf(value);
+      const selectedOptionIndex = originalOptions.indexOf(value[0]);
 
       return selectedOptionIndex > 0 ? selectedOptionIndex : 0;
     }
@@ -219,9 +215,13 @@ export function useSelect<T>({
       const option = options[index];
       if (option && onChangeRef.current) {
         onChangeRef.current(option);
-      }
 
-      setOpen(false);
+        if (!multi) {
+          setOpen(false);
+        } else {
+          value && onChangeRef.current([...value, option]);
+        }
+      }
     },
     [options, duplicates, value, setOpen]
   );
@@ -301,7 +301,7 @@ export function useSelect<T>({
     onClick,
     onBlur,
     ...rest
-  }: IToggleProps = {}): ReturnType<typeof getKeyProps> => {
+  }: IToggleProps = {}): IGetTogglePropsResult => {
     return getKeyProps({
       [refKey]: (el: HTMLButtonElement) => {
         inputRef.current = el;
@@ -406,6 +406,8 @@ export function useSelect<T>({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);
+
+  console.log(value);
 
   return {
     // State

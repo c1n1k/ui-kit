@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import computeScrollIntoView from 'compute-scroll-into-view';
 
 import { useSelect } from '../hooks/use-select';
 import { cnSelect } from '../cnBlock';
@@ -8,6 +7,7 @@ import '../styles.css';
 import { Container } from '../components/Container';
 import { Dropdown } from '../components/Dropdown';
 import { PropForm, PropSize, PropWidth, PropView } from '../types';
+import { scrollIntoView } from '../hooks/utils';
 
 type Props<T> = {
   className?: string;
@@ -26,22 +26,6 @@ type Props<T> = {
   getItemLabel(T): string;
   getItemKey(T): string;
 };
-
-function scrollIntoView(node: HTMLDivElement, menuNode: HTMLDivElement) {
-  if (!node) {
-    return;
-  }
-
-  const actions = computeScrollIntoView(node, {
-    boundary: menuNode,
-    block: 'nearest',
-    scrollMode: 'if-needed',
-  });
-  actions.forEach(({ el, top, left }) => {
-    el.scrollTop = top;
-    el.scrollLeft = left;
-  });
-}
 
 export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (props) => {
   const {
@@ -99,9 +83,11 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
     setIsFocused(!isFocused);
   };
 
+  const arrValue = value ? [value] : null;
+
   const { visibleOptions, highlightedIndex, getToggleProps, getOptionProps, isOpen } = useSelect({
     options,
-    value,
+    value: arrValue,
     onChange,
     optionsRef,
     shiftAmount,
@@ -114,12 +100,13 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
         <div className={cnSelect('ControlInner')}>
           <button
             {...getToggleProps()}
+            type="button"
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             className={cnSelect('ControlValueContainer')}
           >
-            {value ? (
-              <span className={cnSelect('ControlValue')}>{getItemLabel(value)}</span>
+            {arrValue ? (
+              <span className={cnSelect('ControlValue')}>{getItemLabel(arrValue[0])}</span>
             ) : (
               <span className={cnSelect('ControlPlaceholder')}>{placeholder}</span>
             )}

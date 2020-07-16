@@ -1,4 +1,5 @@
 import React from 'react';
+import computeScrollIntoView from 'compute-scroll-into-view';
 
 export type KeyHandler = (
   defaultShift?: boolean,
@@ -108,4 +109,20 @@ export function useClickOutsideRef(enable, fn: (e: React.SyntheticEvent) => void
       document.removeEventListener('click', handle, true);
     };
   }, [enable, handle]);
+}
+
+export function scrollIntoView(node: HTMLDivElement, menuNode: HTMLDivElement) {
+  if (!node) {
+    return;
+  }
+
+  const actions = computeScrollIntoView(node, {
+    boundary: menuNode,
+    block: 'nearest',
+    scrollMode: 'if-needed',
+  });
+  actions.forEach(({ el, top, left }) => {
+    el.scrollTop = top;
+    el.scrollLeft = left;
+  });
 }
