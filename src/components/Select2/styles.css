@@ -265,7 +265,9 @@
     white-space: nowrap;
   }
 
-  &-IndicatorsIcon {
+  &-DropdownIndicatorIcon {
+    position: relative;
+    top: 1px;
     fill: currentColor;
   }
 
@@ -275,6 +277,8 @@
     max-height: 200px;
     width: 100%;
     overflow-y: auto;
+    font-size: var(--input-font-size);
+    line-height: 120%;
   }
 
   &_size_xs &-List,
@@ -293,6 +297,7 @@
     padding-right: var(--input-space);
     cursor: default;
     color: var(--color-control-typo-default);
+    background-color: var(--color-control-bg-clear);
 
     &_hovered {
       background-color: var(--color-control-bg-clear-hover);

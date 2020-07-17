@@ -103,6 +103,8 @@ const initialState = {
   highlightedIndex: 0,
 };
 
+const FAKE_SHIFT_AMOUNT = 1000000000000;
+
 function useHoistedState(initialState: State): [State, (updater: Updater, action: Action) => void] {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const reducerRef = React.useRef<Reducer>((old, newState, action) => newState);
@@ -246,7 +248,7 @@ export function useSelect<T>({
   ) => {
     e.preventDefault();
     const amount =
-      defaultMeta || meta ? 1000000000000 : defaultShift || shift ? shiftAmount - 1 : 1;
+      defaultMeta || meta ? FAKE_SHIFT_AMOUNT : defaultShift || shift ? shiftAmount - 1 : 1;
     setOpen(true);
     highlightIndex((old) => old - amount);
   };
@@ -257,7 +259,7 @@ export function useSelect<T>({
   ) => {
     e.preventDefault();
     const amount =
-      defaultMeta || meta ? 1000000000000 : defaultShift || shift ? shiftAmount - 1 : 1;
+      defaultMeta || meta ? FAKE_SHIFT_AMOUNT : defaultShift || shift ? shiftAmount - 1 : 1;
     setOpen(true);
     highlightIndex((old) => old + amount);
   };

@@ -46,6 +46,7 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
   const shiftAmount = pageSize;
 
   const optionsRef = useRef<HTMLDivElement | null>(null);
+  const arrValue = value ? [value] : null;
 
   const scrollToIndex = (index: number): void => {
     if (!optionsRef.current) {
@@ -58,6 +59,22 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
 
     scrollIntoView(elements[index], optionsRef.current);
   };
+
+  const {
+    visibleOptions,
+    highlightedIndex,
+    getToggleProps,
+    getOptionProps,
+    isOpen,
+    setOpen,
+  } = useSelect({
+    options,
+    value: arrValue,
+    onChange,
+    optionsRef,
+    shiftAmount,
+    scrollToIndex,
+  });
 
   const handleInputFocus = (e: React.FocusEvent<HTMLElement>) => {
     if (!restProps.disabled) {
@@ -82,18 +99,8 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
 
   const handleToggleDropdown = () => {
     setIsFocused(!isFocused);
+    setOpen(!isOpen);
   };
-
-  const arrValue = value ? [value] : null;
-
-  const { visibleOptions, highlightedIndex, getToggleProps, getOptionProps, isOpen } = useSelect({
-    options,
-    value: arrValue,
-    onChange,
-    optionsRef,
-    shiftAmount,
-    scrollToIndex,
-  });
 
   return (
     <Container focused={isFocused} {...restProps}>
@@ -116,10 +123,10 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
         <span className={cnSelect('Indicators')}>
           <button
             className={cnSelect('IndicatorsDropdown')}
-            tabIndex={-1}
+            tabIndex={0}
             onClick={handleToggleDropdown}
           >
-            <IconSelect size="xs" className={cnSelect('IndicatorsIcon')} />
+            <IconSelect size="xs" className={cnSelect('DropdownIndicatorIcon')} />
           </button>
         </span>
       </div>
