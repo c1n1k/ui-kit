@@ -9,7 +9,9 @@ import { Dropdown } from '../components/Dropdown';
 import { PropForm, PropSize, PropWidth, PropView } from '../types';
 import { scrollIntoView } from '../hooks/utils';
 
-type Props<T> = {
+export type SimpleSelectProps<T> = {
+  options: T[];
+  value: T | null;
   className?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -17,18 +19,19 @@ type Props<T> = {
   size?: PropSize;
   width?: PropWidth;
   view?: PropView;
-  options: T[];
-  value: T | null;
   pageSize?: number;
+  ariaLabel?: string;
   onChange: (value: T | T[] | null) => void;
-  onBlur?: (event?: React.FocusEvent<HTMLElement>) => void;
-  onFocus?: (event?: React.FocusEvent<HTMLElement>) => void;
   getItemLabel(arg: T): string;
   getItemKey(arg: T): string;
   getOptionValue(arg: T): string | string[];
+  onBlur?: (event?: React.FocusEvent<HTMLElement>) => void;
+  onFocus?: (event?: React.FocusEvent<HTMLElement>) => void;
 };
 
-export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (props) => {
+export const BasicSelect: <T>(
+  p: SimpleSelectProps<T>
+) => React.ReactElement<SimpleSelectProps<T>> = (props) => {
   const {
     placeholder,
     onBlur,
@@ -36,14 +39,13 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
     options,
     onChange,
     value,
-    pageSize = 10,
     getItemLabel,
     getItemKey,
+    disabled,
+    ariaLabel,
     ...restProps
   } = props;
   const [isFocused, setIsFocused] = useState(false);
-
-  const shiftAmount = pageSize;
 
   const optionsRef = useRef<HTMLDivElement | null>(null);
   const arrValue = value ? [value] : null;
@@ -72,12 +74,12 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
     value: arrValue,
     onChange,
     optionsRef,
-    shiftAmount,
     scrollToIndex,
+    disabled,
   });
 
   const handleInputFocus = (e: React.FocusEvent<HTMLElement>) => {
-    if (!restProps.disabled) {
+    if (!disabled) {
       if (!isFocused) {
         setIsFocused(true);
       }
@@ -103,7 +105,7 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
   };
 
   return (
-    <Container focused={isFocused} {...restProps}>
+    <Container focused={isFocused} disabled={disabled} {...restProps}>
       <div className={cnSelect('Control')} aria-expanded={isOpen} aria-haspopup="listbox">
         <div className={cnSelect('ControlInner')}>
           <button
@@ -112,6 +114,7 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             className={cnSelect('ControlValueContainer')}
+            aria-label={ariaLabel}
           >
             {arrValue ? (
               <span className={cnSelect('ControlValue')}>{getItemLabel(arrValue[0])}</span>
@@ -122,6 +125,7 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
         </div>
         <span className={cnSelect('Indicators')}>
           <button
+            type="button"
             className={cnSelect('IndicatorsDropdown')}
             tabIndex={0}
             onClick={handleToggleDropdown}
@@ -131,12 +135,8 @@ export const BasicSelect: <T>(p: Props<T>) => React.ReactElement<Props<T>> = (pr
         </span>
       </div>
       {isOpen && (
-        <Dropdown role="listbox">
-          <div
-            className={cnSelect('List')}
-            ref={optionsRef}
-            aria-activedescendant={`sample-${highlightedIndex}`}
-          >
+        <Dropdown role="listbox" aria-activedescendant={`sample-${highlightedIndex}`}>
+          <div className={cnSelect('List')} ref={optionsRef}>
             {visibleOptions.map((option, index: number) => (
               <div
                 aria-selected={option === value}

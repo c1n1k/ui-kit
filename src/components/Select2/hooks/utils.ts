@@ -1,10 +1,7 @@
 import React from 'react';
 import computeScrollIntoView from 'compute-scroll-into-view';
 
-export type KeyHandler = (
-  defaultShift?: boolean,
-  defaultMeta?: boolean
-) => (prop: { shift: boolean; meta: boolean }, e: React.KeyboardEvent) => void;
+export type KeyHandler = () => (prop: {}, e: React.KeyboardEvent) => void;
 
 export type KeyProps = {
   onKeyDown?(e: React.KeyboardEvent): void;
@@ -90,6 +87,7 @@ export function useClickOutsideRef(enable, fn: (e: React.SyntheticEvent) => void
     (e) => {
       const isTouch = e.type === 'touchstart';
       if (e.type === 'click' && isTouch) {
+        console.log('event');
         return;
       }
       const el = elRef.current;
@@ -112,10 +110,6 @@ export function useClickOutsideRef(enable, fn: (e: React.SyntheticEvent) => void
 }
 
 export function scrollIntoView(node: HTMLDivElement, menuNode: HTMLDivElement) {
-  if (!node) {
-    return;
-  }
-
   const actions = computeScrollIntoView(node, {
     boundary: menuNode,
     block: 'nearest',

@@ -44,9 +44,9 @@ type SelectProps<T> = {
   duplicates?: boolean;
   multi?: boolean;
   scrollToIndex?: ScrollToIndexFunctionType;
-  shiftAmount: number;
   // filterFn?: FilterFunctionType;
   getTimeDebounce?: number;
+  disabled?: boolean;
 };
 
 interface IOptionProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -103,8 +103,6 @@ const initialState = {
   highlightedIndex: 0,
 };
 
-const FAKE_SHIFT_AMOUNT = 1000000000000;
-
 function useHoistedState(initialState: State): [State, (updater: Updater, action: Action) => void] {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const reducerRef = React.useRef<Reducer>((old, newState, action) => newState);
@@ -128,9 +126,9 @@ export function useSelect<T>({
   onChange,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   scrollToIndex = () => {},
-  shiftAmount,
   optionsRef,
   multi = false,
+  disabled = false,
 }: SelectProps<T>): UseSelectResult<T> {
   const [{ searchValue, isOpen, highlightedIndex }, setState] = useHoistedState(initialState);
 
@@ -230,7 +228,7 @@ export function useSelect<T>({
 
   // Handlers
 
-  const handleSearchValueChange = () => {
+  const handleValueChange = () => {
     setOpen(true);
   };
 
@@ -242,29 +240,19 @@ export function useSelect<T>({
 
   // Prop Getters
 
-  const ArrowUp: KeyHandler = (defaultShift, defaultMeta) => (
-    { shift, meta },
-    e: React.SyntheticEvent
-  ) => {
+  const ArrowUp: KeyHandler = () => ({}, e: React.SyntheticEvent) => {
     e.preventDefault();
-    const amount =
-      defaultMeta || meta ? FAKE_SHIFT_AMOUNT : defaultShift || shift ? shiftAmount - 1 : 1;
     setOpen(true);
-    highlightIndex((old) => old - amount);
+    highlightIndex((old) => old - 1);
   };
 
-  const ArrowDown: KeyHandler = (defaultShift, defaultMeta) => (
-    { shift, meta },
-    e: React.SyntheticEvent
-  ) => {
+  const ArrowDown: KeyHandler = () => ({}, e: React.SyntheticEvent) => {
     e.preventDefault();
-    const amount =
-      defaultMeta || meta ? FAKE_SHIFT_AMOUNT : defaultShift || shift ? shiftAmount - 1 : 1;
     setOpen(true);
-    highlightIndex((old) => old + amount);
+    highlightIndex((old) => old + 1);
   };
 
-  const Enter = (_, e: React.KeyboardEvent) => {
+  const Enter = ({}, e: React.KeyboardEvent) => {
     if (isOpen) {
       if (searchValue || options[highlightedIndex]) {
         e.preventDefault();
@@ -286,10 +274,10 @@ export function useSelect<T>({
   const getKeyProps = useKeys({
     ArrowUp: ArrowUp(),
     ArrowDown: ArrowDown(),
-    PageUp: ArrowUp(true),
-    PageDown: ArrowDown(true),
-    Home: ArrowUp(false, true),
-    End: ArrowDown(false, true),
+    PageUp: ArrowUp(),
+    PageDown: ArrowDown(),
+    Home: ArrowUp(),
+    End: ArrowDown(),
     Enter,
     Escape,
     Tab,
@@ -312,7 +300,7 @@ export function useSelect<T>({
         }
       },
       onChange: (e) => {
-        handleSearchValueChange();
+        handleValueChange();
         if (onChange) {
           onChange(e);
         }
@@ -375,6 +363,12 @@ export function useSelect<T>({
     },
     optionsRef
   );
+
+  React.useEffect(() => {
+    if (disabled) {
+      setOpen(false);
+    }
+  }, [disabled]);
 
   // When searching, activate the first option
   React.useEffect(() => {

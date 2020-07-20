@@ -6,7 +6,7 @@
     width: 100%;
   }
 
-  &-Delimetr {
+  &-Delimiter {
     width: 1px;
     background-color: var(--color-control-bg-border-default);
   }
