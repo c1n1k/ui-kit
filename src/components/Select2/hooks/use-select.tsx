@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, FocusEvent, CSSProperties } from 'react';
-import { useKeys, useClickOutsideRef, KeyHandler } from './utils';
+import { useKeys, useClickOutsideRef, KeyHandler, usePrevious } from './utils';
 
 type State = {
   searchValue: string;
@@ -163,14 +163,18 @@ export function useSelect<T>({
         }),
         actions.setOpen
       );
-
-      if (value && newIsOpen) {
-        const currentHighlightIndex = getSelectedOptionIndex();
-        scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
-      }
     },
     [setState]
   );
+
+  const prevIsOpen = usePrevious(isOpen);
+
+  React.useLayoutEffect(() => {
+    if (value !== null && !prevIsOpen && isOpen) {
+      const currentHighlightIndex = getSelectedOptionIndex();
+      scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
+    }
+  });
 
   const highlightIndex = React.useCallback(
     (value) => {
