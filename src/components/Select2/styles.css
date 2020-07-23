@@ -190,16 +190,6 @@
     }
   }
 
-  &-ControlPlaceholder {
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    font-size: var(--input-font-size);
-    text-overflow: ellipsis;
-    text-align: left;
-    color: var(--color-control-typo-placeholder);
-  }
-
   &-Indicators {
     height: 100%;
     display: flex;
@@ -258,11 +248,18 @@
     transform: rotate(180deg);
   }
 
-  &-ControlValue {
+  &-ControlValue,
+  &-ControlPlaceholder {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &-ControlPlaceholder {
+    font-size: var(--input-font-size);
+    text-align: left;
+    color: var(--color-control-typo-placeholder);
   }
 
   &-DropdownIndicatorIcon {

@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
 
-import { useSelect } from '../hooks/use-select';
-import { cnSelect } from '../cnSelect';
 import { IconSelect } from '../../../icons/IconSelect/IconSelect';
-import '../styles.css';
+
 import { Container } from '../components/Container';
 import { Dropdown } from '../components/Dropdown';
-import { PropForm, PropSize, PropWidth, PropView } from '../types';
+
+import { useSelect } from '../hooks/use-select';
 import { scrollIntoView } from '../hooks/utils';
+
+import { cnSelect } from '../cnSelect';
+import { PropForm, PropSize, PropWidth, PropView } from '../types';
+
+import '../styles.css';
 
 export type SimpleSelectProps<T> = {
   options: T[];
@@ -129,9 +133,13 @@ export const BasicSelect: <T>(
             aria-label={ariaLabel}
           >
             {arrValue ? (
-              <span className={cnSelect('ControlValue')}>{getItemLabel(arrValue[0])}</span>
+              <span className={cnSelect('ControlValue')} title={getItemLabel(arrValue[0])}>
+                {getItemLabel(arrValue[0])}
+              </span>
             ) : (
-              <span className={cnSelect('ControlPlaceholder')}>{placeholder}</span>
+              <span className={cnSelect('ControlPlaceholder')} title="placeholder">
+                {placeholder}
+              </span>
             )}
           </button>
         </div>
