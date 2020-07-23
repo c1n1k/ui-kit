@@ -58,64 +58,6 @@
     }
   }
 
-  &_view_clear .Select-Control,
-  &_view_clear .Select-Control:hover,
-  &_view_clear .Select-Control:focus {
-    padding: 0;
-    color: var(--color-control-typo-default);
-
-    &.Select_disabled {
-      pointer-events: none;
-
-      & .Select-Control {
-        color: var(--color-control-typo-disable);
-      }
-    }
-  }
-
-  &_view_default .Select-Control {
-    padding: 0;
-    border: var(--control-border-width) solid var(--color-control-bg-border-default);
-    border-radius: var(--control-radius);
-    background: var(--color-control-bg-default);
-    color: var(--color-control-typo-default);
-
-    &:hover {
-      border-color: var(--color-control-bg-border-default-hover);
-    }
-  }
-
-  &_view_default&.Select_focused .Select-Control {
-    border-color: var(--color-control-bg-border-focus);
-    outline: none;
-    z-index: 1;
-  }
-
-  &_view_default.Select_form_clear .Select-Control,
-  &_view_default.Select_form_clearClear .Select-Control {
-    box-shadow: var(--control-border-width) 0 var(--color-control-bg-border-focus),
-      calc(-1 * var(--control-border-width)) 0 var(--color-control-bg-border-focus);
-  }
-
-  &_view_default.Select_form_defaultClear .Select-Control,
-  &_view_default.Select_form_brickClear .Select-Control,
-  &_view_default.Select_form_roundClear .Select-Control {
-    box-shadow: var(--control-border-width) 0 var(--color-control-bg-border-focus);
-  }
-
-  &_view_default.Select_form_clearDefault .Select-Control,
-  &_view_default.Select_form_clearBrick .Select-Control,
-  &_view_default.Select_form_clearRound .Select-Control {
-    box-shadow: calc(-1 * var(--control-border-width)) 0 var(--color-control-bg-border-focus);
-  }
-
-  &_view_default.Select_disabled .Select-Control {
-    border-color: var(--color-control-bg-border-disable);
-    background: var(--color-control-bg-disable);
-    pointer-events: none;
-    color: var(--color-control-typo-disable);
-  }
-
   &_form {
     &_round .Select-Control {
       border-radius: calc(var(--input-height) / 2);
@@ -187,6 +129,64 @@
       border-width: 0;
       border-top-width: var(--control-border-width);
       border-bottom-width: var(--control-border-width);
+    }
+  }
+
+  &_view_default .Select-Control {
+    padding: 0;
+    border: var(--control-border-width) solid var(--color-control-bg-border-default);
+    border-radius: var(--control-radius);
+    background: var(--color-control-bg-default);
+    color: var(--color-control-typo-default);
+
+    &:hover {
+      border-color: var(--color-control-bg-border-default-hover);
+    }
+  }
+
+  &_view_default.Select_focused .Select-Control {
+    border-color: var(--color-control-bg-border-focus);
+    outline: none;
+    z-index: 1;
+  }
+
+  &_view_default.Select_form_clear .Select-Control,
+  &_view_default.Select_form_clearClear .Select-Control {
+    box-shadow: var(--control-border-width) 0 var(--color-control-bg-border-focus),
+      calc(-1 * var(--control-border-width)) 0 var(--color-control-bg-border-focus);
+  }
+
+  &_view_default.Select_form_defaultClear .Select-Control,
+  &_view_default.Select_form_brickClear .Select-Control,
+  &_view_default.Select_form_roundClear .Select-Control {
+    box-shadow: var(--control-border-width) 0 var(--color-control-bg-border-focus);
+  }
+
+  &_view_default.Select_form_clearDefault .Select-Control,
+  &_view_default.Select_form_clearBrick .Select-Control,
+  &_view_default.Select_form_clearRound .Select-Control {
+    box-shadow: calc(-1 * var(--control-border-width)) 0 var(--color-control-bg-border-focus);
+  }
+
+  &_view_default.Select_disabled .Select-Control {
+    border-color: var(--color-control-bg-border-disable);
+    background: var(--color-control-bg-disable);
+    pointer-events: none;
+    color: var(--color-control-typo-disable);
+  }
+
+  &_view_clear .Select-Control,
+  &_view_clear .Select-Control:hover,
+  &_view_clear .Select-Control:focus {
+    padding: 0;
+    color: var(--color-control-typo-default);
+
+    &.Select_disabled {
+      pointer-events: none;
+
+      & .Select-Control {
+        color: var(--color-control-typo-disable);
+      }
     }
   }
 

@@ -1,7 +1,7 @@
 import './Container.css';
 
 import React from 'react';
-import { cnSelect } from '../../cnBlock';
+import { cnSelect } from '../../cnSelect';
 import { PropForm, PropSize, PropWidth, PropView } from '../../types';
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export const Container: React.FC<Props> = (props) => {
+export const Container = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
   const {
     size = 'm',
     width = 'default',
@@ -28,8 +28,13 @@ export const Container: React.FC<Props> = (props) => {
   } = props;
 
   return (
-    <div className={cnSelect({ size, width, form, disabled, view, focused }, [className])}>
+    <div
+      className={cnSelect({ size, width, form, disabled, view, focused }, [className])}
+      ref={ref}
+    >
       {children}
     </div>
   );
-};
+});
+
+Container.displayName = 'Container';

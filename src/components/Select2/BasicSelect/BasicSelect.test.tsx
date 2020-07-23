@@ -38,15 +38,18 @@ const renderComponent = (props: SimpleSelectProps<SelectOption> = defaultProps):
     ...restProps
   } = props;
   return render(
-    <BasicSelect
-      value={value}
-      onChange={onChange}
-      options={options}
-      getItemKey={getItemKey}
-      getItemLabel={getItemLabel}
-      getOptionValue={getOptionValue}
-      {...restProps}
-    />
+    <>
+      <div data-testid="block"></div>
+      <BasicSelect
+        value={value}
+        onChange={onChange}
+        options={options}
+        getItemKey={getItemKey}
+        getItemLabel={getItemLabel}
+        getOptionValue={getOptionValue}
+        {...restProps}
+      />
+    </>
   );
 };
 
@@ -62,6 +65,55 @@ describe('Компонент BasicSelect', () => {
     expect(renderComponent).not.toThrow();
   });
 
+  it('рендерится с установленным значением', () => {
+    const select = renderComponent({
+      ...defaultProps,
+      value: { label: 'Тестовая опция', value: 'test' },
+    });
+    expect(select.getByText('Тестовая опция')).toBeInTheDocument();
+  });
+
+  it('открывается и закрывается по клику', () => {
+    renderComponent();
+
+    openSelect();
+
+    const list = getList();
+    expect(list).toBeInTheDocument();
+
+    openSelect();
+
+    expect(list).not.toBeInTheDocument();
+  });
+
+  it('открывается и закрывается по клику за пределами селекта', () => {
+    const select = renderComponent();
+
+    openSelect();
+
+    const list = getList();
+    expect(list).toBeInTheDocument();
+
+    fireEvent.click(select.getByTestId('block'));
+
+    expect(list).not.toBeInTheDocument();
+  });
+
+  it('открывается и закрывается по клику на индикатор', () => {
+    const select = renderComponent();
+
+    const buttons = select.baseElement.getElementsByTagName('button');
+
+    fireEvent.click(buttons[1]);
+
+    const list = getList();
+
+    expect(list).toBeInTheDocument();
+
+    fireEvent.click(buttons[1]);
+    expect(list).not.toBeInTheDocument();
+  });
+
   it('отрисовываются опции', () => {
     const select = renderComponent();
 
@@ -74,8 +126,10 @@ describe('Компонент BasicSelect', () => {
     expect(options.length).toEqual(5);
   });
 
-  it.skip('выбирается опция', () => {
+  it('выбирается опция', () => {
     const select = renderComponent();
+
+    expect(select.getByText('placeholder')).toBeInTheDocument();
 
     openSelect();
 
@@ -86,8 +140,8 @@ describe('Компонент BasicSelect', () => {
 
     fireEvent.click(options[3]);
 
-    expect(list).not.toBeInTheDocument();
-    expect(getMenuButton().textContent).toBe('Americium');
+    expect(select.getByText('Curium')).toBeInTheDocument();
+    expect(select).not.toContain('placeholder');
   });
 
   it('вызывается onChange', () => {
@@ -100,5 +154,29 @@ describe('Компонент BasicSelect', () => {
     fireEvent.click(options[3]);
 
     expect(handlerChange).toBeCalledTimes(1);
+  });
+
+  it('вызывается onFocus', () => {
+    const handlerFocus = jest.fn();
+    renderComponent({ ...defaultProps, onFocus: handlerFocus });
+
+    expect(handlerFocus).toBeCalledTimes(0);
+
+    getMenuButton().focus();
+
+    expect(handlerFocus).toBeCalledTimes(1);
+  });
+
+  it('вызывается onBlur', () => {
+    const handlerBlur = jest.fn();
+    renderComponent({ ...defaultProps, onBlur: handlerBlur });
+
+    getMenuButton().focus();
+
+    expect(handlerBlur).toBeCalledTimes(0);
+
+    getMenuButton().blur();
+
+    expect(handlerBlur).toBeCalledTimes(1);
   });
 });

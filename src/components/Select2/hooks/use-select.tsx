@@ -19,8 +19,6 @@ type Payload = {
 type Reducer = (state: State, newState: State, action: Action) => State;
 type Updater = (state: State) => State;
 
-type CreateLabelFunctionType = (d: string) => string;
-// type FilterFunctionType = (options: Option[], searchValue: string) => Option[];
 type ScrollToIndexFunctionType = (optionIndex: number) => void;
 type OnChangeFunctionType = Function;
 
@@ -36,16 +34,12 @@ type FocusEventHandler = {
 type SetHandlerArg<T> = boolean | number | T;
 type SetHandler<T> = (arg: SetHandlerArg<T>) => void;
 
-type SelectProps<T> = {
+export type SelectProps<T> = {
   options: T[];
   value: T[] | null;
   onChange: OnChangeFunctionType;
-  optionsRef: React.MutableRefObject<HTMLDivElement | null>;
-  duplicates?: boolean;
-  multi?: boolean;
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
   scrollToIndex?: ScrollToIndexFunctionType;
-  // filterFn?: FilterFunctionType;
-  getTimeDebounce?: number;
   disabled?: boolean;
 };
 
@@ -120,14 +114,12 @@ function useHoistedState(initialState: State): [State, (updater: Updater, action
 }
 
 export function useSelect<T>({
-  duplicates,
   options,
-  value = [],
+  value,
   onChange,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  scrollToIndex = () => {},
-  optionsRef,
-  multi = false,
+  scrollToIndex,
+  containerRef,
   disabled = false,
 }: SelectProps<T>): UseSelectResult<T> {
   const [{ searchValue, isOpen, highlightedIndex }, setState] = useHoistedState(initialState);
@@ -140,34 +132,19 @@ export function useSelect<T>({
     event: React.FocusEvent | null;
   }>();
   const onChangeRef = React.useRef<OnChangeFunctionType>();
-  // const filterFnRef = React.useRef<FilterFunctionType>();
   const scrollToIndexRef = React.useRef<ScrollToIndexFunctionType>();
 
-  // filterFnRef.current = filterFn;
   scrollToIndexRef.current = scrollToIndex;
 
   onChangeRef.current = onChange;
 
-  // We need to memoize these default values to keep things
-  // from rendering without cause
-  const defaultMultiValue = React.useMemo(() => [], []);
-  const defaultOptions = React.useMemo(() => [], []);
-
-  // Multi should always at least have an empty array as the value
-  if (multi && !value) {
-    value = defaultMultiValue;
+  if (!value) {
+    value = [];
   }
-
-  // If no options are provided, then use an empty array
-  if (!options) {
-    options = defaultOptions;
-  }
-
-  const originalOptions = options;
 
   const getSelectedOptionIndex = () => {
     if (value) {
-      const selectedOptionIndex = originalOptions.indexOf(value[0]);
+      const selectedOptionIndex = options.indexOf(value[0]);
 
       return selectedOptionIndex > 0 ? selectedOptionIndex : 0;
     }
@@ -216,39 +193,35 @@ export function useSelect<T>({
       if (option && onChangeRef.current) {
         onChangeRef.current(option);
 
-        if (!multi) {
-          setOpen(false);
-        } else {
-          value && onChangeRef.current([...value, option]);
-        }
+        setOpen(false);
       }
     },
-    [options, duplicates, value, setOpen]
+    [options, value, setOpen]
   );
 
   // Handlers
 
-  const handleValueChange = () => {
-    setOpen(true);
+  const handleValueFieldChange = () => {
+    !disabled && setOpen(true);
   };
 
-  const handleSearchClick = () => {
-    setOpen(true);
+  const handleValueFieldClick = () => {
+    !disabled && setOpen(!isOpen);
   };
 
-  const handleSearchFocus = () => handleSearchClick();
+  const handleValueFieldFocus = () => handleValueFieldClick();
 
   // Prop Getters
 
   const ArrowUp: KeyHandler = () => ({}, e: React.SyntheticEvent) => {
     e.preventDefault();
-    setOpen(true);
+    !disabled && setOpen(true);
     highlightIndex((old) => old - 1);
   };
 
   const ArrowDown: KeyHandler = () => ({}, e: React.SyntheticEvent) => {
     e.preventDefault();
-    setOpen(true);
+    !disabled && setOpen(true);
     highlightIndex((old) => old + 1);
   };
 
@@ -300,19 +273,19 @@ export function useSelect<T>({
         }
       },
       onChange: (e) => {
-        handleValueChange();
+        handleValueFieldChange();
         if (onChange) {
           onChange(e);
         }
       },
       onFocus: (e) => {
-        handleSearchFocus();
+        handleValueFieldFocus();
         if (onFocus) {
           onFocus(e);
         }
       },
       onClick: (e) => {
-        handleSearchClick();
+        handleValueFieldClick();
         if (onClick) {
           onClick(e);
         }
@@ -329,12 +302,6 @@ export function useSelect<T>({
   };
 
   const getOptionProps = ({ index, onClick, onMouseEnter, ...rest }): GetOptionPropsResult => {
-    if (typeof index !== 'number' || index < 0) {
-      throw new Error(
-        `useSelect: The getOptionProps prop getter requires an index property, eg. 'getOptionProps({index: 1})'`
-      );
-    }
-
     return {
       ...rest,
       onClick: (e: React.SyntheticEvent) => {
@@ -361,7 +328,7 @@ export function useSelect<T>({
     () => {
       setOpen(false);
     },
-    optionsRef
+    containerRef
   );
 
   React.useEffect(() => {

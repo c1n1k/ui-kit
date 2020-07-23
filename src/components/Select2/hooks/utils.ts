@@ -18,38 +18,6 @@ export type UserKeysProps = {
   ) => void;
 };
 
-export function useDebounce(time = 0, fn: Function) {
-  const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout> | null>();
-  const fnRef = React.useRef<Function>();
-
-  fnRef.current = fn;
-
-  React.useEffect(() => {
-    return () => {
-      if (timeoutIDRef.current) {
-        clearTimeout(timeoutIDRef.current);
-      }
-    };
-  }, [time]);
-
-  return React.useCallback(
-    async (...args) => {
-      if (timeoutIDRef.current) {
-        clearTimeout(timeoutIDRef.current);
-      }
-      return new Promise((resolve) => {
-        timeoutIDRef.current = setTimeout(() => {
-          if (timeoutIDRef.current && fnRef.current) {
-            timeoutIDRef.current = null;
-            resolve(fnRef.current(...args));
-          }
-        }, time);
-      });
-    },
-    [time]
-  );
-}
-
 export const useKeys = (userKeys: UserKeysProps) => {
   return ({ onKeyDown, ...rest }: KeyProps) => {
     return {

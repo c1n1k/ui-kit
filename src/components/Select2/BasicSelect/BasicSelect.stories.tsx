@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { withKnobs, text, select, boolean } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react';
 import { BasicSelect } from './BasicSelect';
@@ -69,11 +69,9 @@ const knobsContainer = () => ({
 storiesOf('Select/BasicSelect', module)
   .addDecorator(withKnobs)
   .add('BasicSelect', () => {
-    const [value, setValue] = useState<SelectOption | null>(null);
     const getItemLabel = (option: SelectOption): string => option.label;
     const getItemKey = (option: SelectOption): string => option.value;
     const getItemValue = (option: SelectOption): string => option.value;
-    const handlerChangeValue = (val: SelectOption) => setValue(val);
 
     return (
       <>
@@ -81,12 +79,10 @@ storiesOf('Select/BasicSelect', module)
           <BasicSelect<SelectOption>
             {...knobsContainer()}
             options={items}
-            onChange={handlerChangeValue}
-            value={value}
             getItemLabel={getItemLabel}
             getItemKey={getItemKey}
             getOptionValue={getItemValue}
-          ></BasicSelect>
+          />
         </div>
       </>
     );

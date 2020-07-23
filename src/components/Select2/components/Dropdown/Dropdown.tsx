@@ -1,7 +1,7 @@
 import './Dropdown.css';
 
 import React from 'react';
-import { cnSelect } from '../../cnBlock';
+import { cnSelect } from '../../cnSelect';
 
 type Props = {
   className?: string;

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 
 import { useSelect } from '../hooks/use-select';
-import { cnSelect } from '../cnBlock';
+import { cnSelect } from '../cnSelect';
 import { IconSelect } from '../../../icons/IconSelect/IconSelect';
 import '../styles.css';
 import { Container } from '../components/Container';
@@ -11,7 +11,7 @@ import { scrollIntoView } from '../hooks/utils';
 
 export type SimpleSelectProps<T> = {
   options: T[];
-  value: T | null;
+  value?: T | null;
   className?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -19,9 +19,8 @@ export type SimpleSelectProps<T> = {
   size?: PropSize;
   width?: PropWidth;
   view?: PropView;
-  pageSize?: number;
   ariaLabel?: string;
-  onChange: (value: T | T[] | null) => void;
+  onChange?: () => void;
   getItemLabel(arg: T): string;
   getItemKey(arg: T): string;
   getOptionValue(arg: T): string | string[];
@@ -46,9 +45,19 @@ export const BasicSelect: <T>(
     ...restProps
   } = props;
   const [isFocused, setIsFocused] = useState(false);
+  const [val, setValue] = useState<typeof value>(value);
+
+  const handlerChangeValue = (v: typeof value) => {
+    // istanbul ignore else path
+    if (onChange) {
+      onChange();
+    }
+    setValue(v);
+  };
 
   const optionsRef = useRef<HTMLDivElement | null>(null);
-  const arrValue = value ? [value] : null;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const arrValue = val ? [val] : null;
 
   const scrollToIndex = (index: number): void => {
     if (!optionsRef.current) {
@@ -72,13 +81,14 @@ export const BasicSelect: <T>(
   } = useSelect({
     options,
     value: arrValue,
-    onChange,
-    optionsRef,
+    onChange: handlerChangeValue,
+    containerRef,
     scrollToIndex,
     disabled,
   });
 
   const handleInputFocus = (e: React.FocusEvent<HTMLElement>) => {
+    // istanbul ignore else path
     if (!disabled) {
       if (!isFocused) {
         setIsFocused(true);
@@ -90,9 +100,11 @@ export const BasicSelect: <T>(
   };
 
   const handleInputBlur = (e: React.FocusEvent<HTMLElement>) => {
+    // istanbul ignore else path
     if (isFocused) {
       setIsFocused(false);
 
+      // istanbul ignore else path
       if (onBlur) {
         onBlur(e);
       }
@@ -100,12 +112,12 @@ export const BasicSelect: <T>(
   };
 
   const handleToggleDropdown = () => {
-    setIsFocused(!isFocused);
     setOpen(!isOpen);
+    setIsFocused(true);
   };
 
   return (
-    <Container focused={isFocused} disabled={disabled} {...restProps}>
+    <Container focused={isFocused} disabled={disabled} ref={containerRef} {...restProps}>
       <div className={cnSelect('Control')} aria-expanded={isOpen} aria-haspopup="listbox">
         <div className={cnSelect('ControlInner')}>
           <button
