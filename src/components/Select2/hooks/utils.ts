@@ -25,7 +25,7 @@ export const useKeys = (userKeys: UserKeysProps) => {
       onKeyDown: (e: React.KeyboardEvent) => {
         const { keyCode, key, shiftKey: shift, metaKey: meta } = e;
         const handler = userKeys[key] || userKeys[keyCode];
-        if (handler) {
+        if (typeof handler === 'function') {
           handler(
             {
               keyCode,
@@ -36,7 +36,7 @@ export const useKeys = (userKeys: UserKeysProps) => {
             e
           );
         }
-        if (onKeyDown) {
+        if (typeof onKeyDown === 'function') {
           onKeyDown(e);
         }
       },

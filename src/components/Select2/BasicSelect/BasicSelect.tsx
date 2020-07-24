@@ -51,9 +51,11 @@ export const BasicSelect: <T>(
   const [isFocused, setIsFocused] = useState(false);
   const [val, setValue] = useState<typeof value>(value);
 
+  console.log(props);
+
   const handlerChangeValue = (v: typeof value) => {
     // istanbul ignore else path
-    if (onChange) {
+    if (typeof onChange === 'function') {
       onChange();
     }
     setValue(v);
@@ -97,7 +99,7 @@ export const BasicSelect: <T>(
       if (!isFocused) {
         setIsFocused(true);
       }
-      if (onFocus) {
+      if (typeof onFocus === 'function') {
         onFocus(e);
       }
     }
@@ -109,7 +111,7 @@ export const BasicSelect: <T>(
       setIsFocused(false);
 
       // istanbul ignore else path
-      if (onBlur) {
+      if (typeof onBlur === 'function') {
         onBlur(e);
       }
     }
@@ -147,7 +149,7 @@ export const BasicSelect: <T>(
           <button
             type="button"
             className={cnSelect('IndicatorsDropdown')}
-            tabIndex={0}
+            tabIndex={-1}
             onClick={handleToggleDropdown}
           >
             <IconSelect size="xs" className={cnSelect('DropdownIndicatorIcon')} />

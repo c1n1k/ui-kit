@@ -173,7 +173,7 @@ export function useSelect<T>({
   );
 
   const highlightIndex = React.useCallback(
-    (value) => {
+    (value: T) => {
       setState((old) => {
         return {
           ...old,
@@ -274,27 +274,26 @@ export function useSelect<T>({
       },
       onChange: (e) => {
         handleValueFieldChange();
-        if (onChange) {
+        if (typeof onChange === 'function') {
           onChange(e);
         }
       },
       onFocus: (e) => {
         handleValueFieldFocus();
-        if (onFocus) {
+        if (typeof onFocus === 'function') {
           onFocus(e);
         }
       },
       onClick: (e) => {
         handleValueFieldClick();
-        if (onClick) {
+        if (typeof onClick === 'function') {
           onClick(e);
         }
       },
       onBlur: (e) => {
-        if (onBlur && onBlurRef.current) {
+        if (typeof onBlur === 'function' && onBlurRef.current) {
           e.persist();
-          onBlurRef.current.cb = onBlur;
-          onBlurRef.current.event = e;
+          onBlurRef.current = { cb: onBlur, event: e };
         }
       },
       ...rest,
@@ -306,13 +305,13 @@ export function useSelect<T>({
       ...rest,
       onClick: (e: React.SyntheticEvent) => {
         selectIndex(index);
-        if (onClick) {
+        if (typeof onClick === 'function') {
           onClick(e);
         }
       },
       onMouseEnter: (e: React.SyntheticEvent) => {
         highlightIndex(index);
-        if (onMouseEnter) {
+        if (typeof onMouseEnter === 'function') {
           onMouseEnter(e);
         }
       },
@@ -341,7 +340,7 @@ export function useSelect<T>({
   React.useEffect(() => {
     const currentHighlightIndex = getSelectedOptionIndex();
     highlightIndex(currentHighlightIndex);
-  }, [searchValue, highlightIndex]);
+  }, [highlightIndex]);
 
   // When we open and close the options, set the highlightedIndex to 0
   React.useEffect(() => {
@@ -361,11 +360,9 @@ export function useSelect<T>({
 
   React.useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current && inputRef.current.focus();
-        const currentHighlightIndex = getSelectedOptionIndex();
-        scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
-      });
+      inputRef.current && inputRef.current.focus();
+      const currentHighlightIndex = getSelectedOptionIndex();
+      scrollToIndexRef.current && scrollToIndexRef.current(currentHighlightIndex);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, inputRef.current]);

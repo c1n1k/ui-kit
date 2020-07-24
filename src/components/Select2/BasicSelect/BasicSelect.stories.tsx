@@ -1,6 +1,7 @@
 import React from 'react';
 import { withKnobs, text, select, boolean } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react';
+import { Form, Field } from 'react-final-form';
 import { BasicSelect } from './BasicSelect';
 
 type SelectOption = {
@@ -73,15 +74,30 @@ storiesOf('Select/BasicSelect', module)
     const getItemKey = (option: SelectOption): string => option.value;
     const getItemValue = (option: SelectOption): string => option.value;
 
+    const onSubmit = (val) => console.log;
+
     return (
       <>
         <div style={{ width: '250px' }}>
-          <BasicSelect<SelectOption>
-            {...knobsContainer()}
-            options={items}
-            getItemLabel={getItemLabel}
-            getItemKey={getItemKey}
-            getOptionValue={getItemValue}
+          <Form
+            onSubmit={onSubmit}
+            render={({ handleSubmit }) => (
+              <form onSubmit={handleSubmit}>
+                <Field name="phone">
+                  {({ input, meta }) => (
+                    <BasicSelect<SelectOption>
+                      {...knobsContainer()}
+                      {...input}
+                      options={items}
+                      getItemLabel={getItemLabel}
+                      getItemKey={getItemKey}
+                      getOptionValue={getItemValue}
+                    />
+                  )}
+                </Field>
+                <button>send</button>
+              </form>
+            )}
           />
         </div>
       </>

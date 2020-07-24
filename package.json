@@ -4,6 +4,8 @@
   "dependencies": {
     "compute-scroll-into-view": "^1.0.14",
     "downshift": "^5.4.2",
+    "final-form": "^4.20.1",
+    "react-final-form": "^6.5.1",
     "tslib": "^1.11.1"
   },
   "peerDependencies": {
